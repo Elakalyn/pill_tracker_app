@@ -19,4 +19,9 @@ void changeMedType(){
   void changeMedTime(){
     emit(MedTimeChangeState());
   }
+  void modifyDoses()
+  {
+    emit(MedDoseModificationState());
+  }
+    var sdate;
 }
