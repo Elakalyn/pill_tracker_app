@@ -18,12 +18,9 @@
 ## 📱 Screenshots (Android):
 
 <div style="display: flex; justify-content: center;">
-  <img src="https://media.discordapp.net/attachments/673875945198714920/1132021543497629796/image.png?width=281&height=609" alt="Image 1">
-  <img src="https://media.discordapp.net/attachments/673875945198714920/1132021622979690636/image.png?width=279&height=610" alt="Image 2">
-  <img src="https://media.discordapp.net/attachments/673875945198714920/1132021658388013128/image.png?width=273&height=609" alt="Image 3">
-  <img src="https://media.discordapp.net/attachments/673875945198714920/1132021840118829196/image.png?width=281&height=609" alt="Image 4">
-  <img src="https://media.discordapp.net/attachments/673875945198714920/1132021974487552112/image.png?width=254&height=610" alt="Image 5">
-  <img src="https://media.discordapp.net/attachments/673875945198714920/1132022141739602030/image.png?width=281&height=609" alt="Image 6">
+  <img src="https://media.discordapp.net/attachments/673875945198714920/1147245932262465566/Screenshot_2023-09-01-22-04-42-07_f794ea43eb3e4be5176ecdd4da2ee47c.jpg?width=192&height=427" alt="Image 1">
+  <img src="https://media.discordapp.net/attachments/673875945198714920/1147245932593823794/Screenshot_2023-09-01-22-03-29-15_f794ea43eb3e4be5176ecdd4da2ee47c.jpg?width=192&height=427" alt="Image 2">
+  <img src="https://media.discordapp.net/attachments/673875945198714920/1147245932933554308/Screenshot_2023-09-01-21-48-12-46_f794ea43eb3e4be5176ecdd4da2ee47c.jpg?width=192&height=427" alt="Image 3">
 </div>
 
 # Community
