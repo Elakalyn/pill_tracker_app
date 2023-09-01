@@ -20,10 +20,11 @@ class HomeScreen extends StatelessWidget {
       builder: (context, state) {
         CollectionReference usersCollection =
             FirebaseFirestore.instance.collection('users');
-        DocumentReference userDocumentRef =
-            usersCollection.doc(user_id);
-        dynamic medsCollectionRef =
-            userDocumentRef.collection('meds').where('date', isEqualTo: today);
+        DocumentReference userDocumentRef = usersCollection.doc(user_id);
+        dynamic medsCollectionRef = userDocumentRef
+            .collection('meds')
+            .where('date', isEqualTo: today)
+            .where('status', isEqualTo: false);
 
         return Scaffold(
           floatingActionButton: Padding(
@@ -84,11 +85,11 @@ class HomeScreen extends StatelessWidget {
                             if (selectedDate != null) {
                               dynamic dayName =
                                   DateFormat('EEEE').format(selectedDate);
-                            
+
                               currentDay = dayName.toString();
                               DateFormat formatter = DateFormat('dd/MM/yyyy');
                               today = formatter.format(selectedDate);
-                                print(dayName);
+                              print(dayName);
                               print(today);
                               AppCubit.get(context).changeDate();
                             }
@@ -162,7 +163,7 @@ is almost done!''',
                         ),
                       ),
                     ),
- SizedBox(height: 10),
+                    SizedBox(height: 10),
                     StreamBuilder<QuerySnapshot>(
                         stream: medsCollectionRef.snapshots(),
                         builder: (context, snapshot) {
@@ -184,7 +185,6 @@ is almost done!''',
                             );
                           }
 
-
                           return ListView.separated(
                               physics: const NeverScrollableScrollPhysics(),
                               shrinkWrap: true,
@@ -193,12 +193,15 @@ is almost done!''',
                                     querySnapshot.docs[index];
 
                                 return MedWidget(
-                                    name: document['name'],
-                                    dose: document['dose'],
-                                    period: document['period'],
-                                    type: document['type'],
-                                    date: document['date'],
-                                    time: document['time']);
+                                  name: document['name'],
+                                  dose: document['dose'],
+                                  period: document['period'],
+                                  type: document['type'],
+                                  date: document['date'],
+                                  time: document['time'],
+                                  docID: document['docID'],
+                                  status: document['status'],
+                                );
                               },
                               separatorBuilder:
                                   (BuildContext context, int index) =>
@@ -207,9 +210,7 @@ is almost done!''',
                                       ),
                               itemCount: querySnapshot.docs.length);
                         }),
-
-                   
-                     SizedBox(height: 65),
+                    SizedBox(height: 65),
                   ],
                 ),
               ),
@@ -230,6 +231,8 @@ class MedWidget extends StatelessWidget {
     required this.type,
     required this.date,
     required this.time,
+    required this.docID,
+    required this.status,
   });
 
   late var name;
@@ -238,6 +241,8 @@ class MedWidget extends StatelessWidget {
   late var type;
   late var date;
   late var time;
+  late var docID;
+  late var status;
 
   late Widget mImage;
 
@@ -250,64 +255,85 @@ class MedWidget extends StatelessWidget {
     } else if (type == 'ampoule') {
       mImage = Image.asset('assets/images/ampoule.png');
     }
-    return Column(
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            time,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    return Dismissible(
+      key: UniqueKey(),
+      background: Container(
+        height: 115,
+        width: double.maxFinite,
+        decoration: BoxDecoration(
+          border: Border.all(color: Color.fromRGBO(236, 237, 239, 1)),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Expanded(
+          child: Icon(
+            Icons.check,
+            size: 48,
           ),
         ),
-        SizedBox(height: 10),
-        Container(
-          height: 115,
-          decoration: BoxDecoration(
-            border: Border.all(color: Color.fromRGBO(236, 237, 239, 1)),
-            borderRadius: BorderRadius.circular(24),
+      ),
+      onDismissed: (direction) {
+        AppCubit.get(context).finishPill(docID);
+        print('TAPPED');
+      },
+      child: Column(
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              time,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(21.0),
-            child: Row(
-              children: [
-                Expanded(child: mImage),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        dose,
-                        style: TextStyle(
-                          color: Color.fromRGBO(140, 142, 151, 1),
-                          fontSize: 16,
+          SizedBox(height: 10),
+          Container(
+            height: 115,
+            decoration: BoxDecoration(
+              border: Border.all(color: Color.fromRGBO(236, 237, 239, 1)),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(21.0),
+              child: Row(
+                children: [
+                  Expanded(child: mImage),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
-                      )
-                    ],
-                  ),
-                ),
-                Expanded(
-                    child: Align(
-                        alignment: Alignment.bottomRight,
-                        child: Text(
-                          period,
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                          dose,
                           style: TextStyle(
                             color: Color.fromRGBO(140, 142, 151, 1),
                             fontSize: 16,
                           ),
-                        ))),
-              ],
+                        )
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                      child: Align(
+                          alignment: Alignment.bottomRight,
+                          child: Text(
+                            '$period days',
+                            style: TextStyle(
+                              color: Color.fromRGBO(140, 142, 151, 1),
+                              fontSize: 16,
+                            ),
+                          ))),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

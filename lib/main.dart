@@ -18,16 +18,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      
         create: (context) => AppCubit(),
         child: BlocConsumer<AppCubit, AppState>(
           listener: (context, state) {
             // TODO: implement listener
           },
-          builder: (context, state) {
-            
+          builder: (context, state) {  
             return MaterialApp(
-              
               title: 'Flutter Demo',
               home: HomeScreen(),
               debugShowCheckedModeBanner: false,

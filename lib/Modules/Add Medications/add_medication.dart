@@ -11,62 +11,22 @@ var medTypeValidator = false;
 var medName;
 var medDose;
 var selectedMedType;
-var doseSelectedTime = '00:00';
-var medSelectedperiod = tcd.text ??= 0;
-var tcd;
 var doseCount = 1;
+var dex;
+var days;
+var reminders = false;
+var reminder5mColor = Color.fromRGBO(196, 202, 207, 1);
+var reminder10mColor = Color.fromRGBO(196, 202, 207, 1);
+var reminder15mColor = Color.fromRGBO(196, 202, 207, 1);
+var reminder20mColor = Color.fromRGBO(196, 202, 207, 1);
+var reminder30mColor = Color.fromRGBO(196, 202, 207, 1);
+List<String> doses = [];
+var validateDoses = false;
 
 void incDose(context) {
   doseCount = doseCount + 1;
   print(doseCount);
   AppCubit.get(context).modifyDoses();
-}
-
-Future<void> selectTime(context) async {
-  var picked = await showTimePicker(
-    context: context,
-    builder: (BuildContext context, var child) {
-      return MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      );
-    },
-    initialTime: TimeOfDay.now(),
-  );
-  if (picked != null) {
-    print(context);
-    doseSelectedTime = picked.format(context);
-    AppCubit.get(context).changeMedTime();
-  }
-}
-
-Widget doseWidget(context, index) {
-  var adjustedIndex = index + 1;
-  return Row(
-    children: [
-      Text(
-        'Dose $adjustedIndex',
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      Spacer(),
-      GestureDetector(
-        onTap: () {
-          selectTime(context);
-        },
-        child: Text(
-          doseSelectedTime,
-          style: TextStyle(
-            color: Color.fromRGBO(196, 202, 207, 1),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      )
-    ],
-  );
 }
 
 class addMedication extends StatelessWidget {
@@ -279,7 +239,7 @@ class addMedication extends StatelessWidget {
                   SizedBox(
                     height: 20,
                   ),
-                  SizedBox(height: 20),
+                  Spacer(),
                   SizedBox(
                     width: double.maxFinite,
                     height: 50,
@@ -336,7 +296,8 @@ class addMedication extends StatelessWidget {
                         ),
                       ),
                     ),
-                  )
+                  ),
+                  SizedBox(height: 20),
                 ],
               ),
             ),
@@ -445,7 +406,7 @@ class addMedication2 extends StatelessWidget {
                                 child: Align(
                                     alignment: Alignment.bottomRight,
                                     child: Text(
-                                      '0 days left',
+                                      '$days days left',
                                       style: TextStyle(
                                         color: Color.fromRGBO(196, 202, 207, 1),
                                         fontSize: 16,
@@ -466,14 +427,26 @@ class addMedication2 extends StatelessWidget {
                           physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
                           itemCount: doseCount,
-                          itemBuilder: (context, index) => doseWidget2(
-                            index: index,
-                          ),
+                          itemBuilder: (context, index) {
+                            dex = index;
+                            return doseWidget();
+                          },
                           separatorBuilder: (context, index) =>
                               SizedBox(height: 20),
                         ),
                       ),
                     ],
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Visibility(
+                    visible: validateDoses,
+                    child: Text('Please schedule the timing of your doses',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 14,
+                        )),
                   ),
                   SizedBox(
                     height: 20,
@@ -511,7 +484,7 @@ class addMedication2 extends StatelessWidget {
                       SizedBox(
                         width: 60,
                         child: TextFormField(
-                          controller: tcd,
+                          initialValue: '0',
                           validator: (value) {
                             if (value!.isEmpty) {
                               return 'Please enter a time period for your medication.';
@@ -520,6 +493,10 @@ class addMedication2 extends StatelessWidget {
                           },
                           keyboardType: TextInputType.number,
                           maxLength: 2,
+                          onFieldSubmitted: (v) {
+                            days = v;
+                            AppCubit.get(context).modifyDays();
+                          },
                           decoration: InputDecoration(
                             counterText: '',
                             hintStyle: TextStyle(
@@ -555,9 +532,151 @@ class addMedication2 extends StatelessWidget {
                         ),
                       ),
                       Spacer(),
-                      CupertinoSwitch(value: false, onChanged: (v) {}),
+                      CupertinoSwitch(
+                          value: reminders,
+                          onChanged: (v) {
+                            reminders = v;
+                            AppCubit.get(context).modifyReminders();
+                          }),
                     ],
                   ),
+                  Visibility(
+                    visible: reminders,
+                    child: Center(
+                      child: Row(
+                        children: [
+                          Text(
+                            'in',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Color.fromRGBO(196, 202, 207, 1),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          GestureDetector(
+                            onTap: () {
+                              reminder5mColor = Colors.black;
+                              AppCubit.get(context).modifyReminders();
+                            },
+                            child: Text(
+                              '5 m',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: reminder5mColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          GestureDetector(
+                            onTap: () {
+                              reminder10mColor = Colors.black;
+                              AppCubit.get(context).modifyReminders();
+                            },
+                            child: Text(
+                              '10 m',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: reminder10mColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          GestureDetector(
+                            onTap: () {
+                              reminder15mColor = Colors.black;
+                              AppCubit.get(context).modifyReminders();
+                            },
+                            child: Text(
+                              '15 m',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: reminder15mColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          GestureDetector(
+                            onTap: () {
+                              reminder20mColor = Colors.black;
+                              AppCubit.get(context).modifyReminders();
+                            },
+                            child: Text(
+                              '20 m',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: reminder20mColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 15),
+                          GestureDetector(
+                            onTap: () {
+                              reminder30mColor = Colors.black;
+                              AppCubit.get(context).modifyReminders();
+                            },
+                            child: Text(
+                              '30 m',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: reminder30mColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  SizedBox(
+                    width: double.maxFinite,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (doses.isNotEmpty) {
+                          AppCubit.get(context)
+                              .medicationAdd(
+                            date: today,
+                            dose: medDose,
+                            name: medName,
+                            period: days,
+                            time: doses.first,
+                            type: medType,
+                            doses: doses,
+                          )
+                              .then((value) {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            doses.clear();
+                          });
+                        } else {
+                          validateDoses = true;
+                          AppCubit.get(context).modifyDoses();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        elevation:
+                            0, // Set the elevation to 0 to remove the shadow
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        backgroundColor: Color(
+                            0xFF1892FA), // Set the hex color value as the button background color
+                      ),
+                      child: Text(
+                        'Schedule',
+                        style: TextStyle(
+                          color: Colors.white, // Set the text color to white
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
                 ],
               ),
             ),
@@ -567,65 +686,66 @@ class addMedication2 extends StatelessWidget {
     );
   }
 }
-      
-class doseWidget2 extends StatelessWidget {
-  doseWidget2({super.key, required this.index});
 
-  final index;
+class doseWidget extends StatefulWidget {
+  const doseWidget({super.key});
+  @override
+  State<doseWidget> createState() => _doseWidgetState();
+}
 
+class _doseWidgetState extends State<doseWidget> {
+  var doseSelectedTime;
+  var adjustedIndex = dex + 1;
+
+  @override
+  void initState() {
+    super.initState();
+    doseSelectedTime = '00:00';
+  }
 
   @override
   Widget build(BuildContext context) {
-    var adjustedIndex = index + 1;
-
-    return BlocConsumer<AppCubit, AppState>(
-      listener: (context, state) {
-
-      },
-      builder: (context, state) {
-        
-        return Row(
-          children: [
-            Text(
-              'Dose $adjustedIndex',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Spacer(),
-            GestureDetector(
-              onTap: () async {
-                
-                var picked = await showTimePicker(
-                  context: context,
-                  builder: (BuildContext context, var child) {
-                    return MediaQuery(
-                      data: MediaQuery.of(context)
-                          .copyWith(alwaysUse24HourFormat: true),
-                      child: child!,
-                    );
-                  },
-                  initialTime: TimeOfDay.now(),
+    return Row(
+      children: [
+        Text(
+          'Dose $adjustedIndex',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Spacer(),
+        GestureDetector(
+          onTap: () async {
+            var picked = await showTimePicker(
+              context: context,
+              builder: (BuildContext context, var child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context)
+                      .copyWith(alwaysUse24HourFormat: true),
+                  child: child!,
                 );
-                if (picked != null) {
-                  AppCubit.get(context).sdate = picked.format(context);
-                  AppCubit.get(context).changeMedTime();
-                  print(AppCubit.get(context).sdate);
-                }
               },
-              child: Text(
-                AppCubit.get(context).sdate ??= '00:00',
-                style: TextStyle(
-                  color: Color.fromRGBO(196, 202, 207, 1),
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-          ],
-        );
-      },
+              initialTime: TimeOfDay.now(),
+            );
+            if (picked != null) {
+              setState(() {
+                doseSelectedTime = picked.format(context);
+                doses.add(doseSelectedTime);
+                print(doseSelectedTime);
+              });
+            }
+          },
+          child: Text(
+            doseSelectedTime,
+            style: TextStyle(
+              color: Color.fromRGBO(196, 202, 207, 1),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        )
+      ],
     );
   }
 }
